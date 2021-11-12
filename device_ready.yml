@@ -1,0 +1,30 @@
+- hosts: palo
+  connection: local
+
+  vars:
+    provider:
+      ip_address: 192.168.1.214
+      username: admin
+      password: password
+      # api_key: "{{ LUFRPT1pZTgybVlXYjJhc24ydXBldWJwL3J1LzhYLzg9YjFUdHlvelR0MTlWdUpTRVVmTjErKytkVjNRUTNtaFQxZHNmd0pEdVRlbVlkT2ZLa1RGNm1UVitsSWliNFdwVg== }}"
+
+  tasks:
+    
+  - name: retrieve api_key
+    paloaltonetworks.panos.panos_api_key:
+      provider: '{{ provider }}'
+    register: auth
+
+  - debug:
+      msg: '{{ auth.api_key }}'
+
+
+  - name: Check to see if device is ready
+    paloaltonetworks.panos.panos_op:
+      provider: '{{ provider }}'
+      cmd: 'show chassis-ready'
+    changed_when: false
+    register: result
+    until: result is not failed and (result.stdout | from_json).response.result == 'yes'
+    retries: 50
+    delay: 30
